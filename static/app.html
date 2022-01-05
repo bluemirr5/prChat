@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>static file</title>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<h1>hello</h1>
+<h2>hello</h2>
+<div>wgs</div>
+<script>
+  const clientSocket = io("/socket.io")
+  console.log(clientSocket.id)
+  console.log('hello')
+</script>
+</body>
+</html>
