@@ -1,11 +1,11 @@
 import express from 'express' // javascrip 2015
-import { Server } from 'socket.io'
+import { Server as SocketServer } from 'socket.io'
 
 import * as http from 'http'
 
 const app = express()
 const server = http.createServer(app)
-const websocketServer = new Server(server)
+const websocketServer = new SocketServer(server)
 
 app.use(express.static('static'))
 
@@ -26,9 +26,13 @@ app.get('/wgs', (req, resp) => {
   resp.send('<h1>wgs</h1>')
 })
 
-server.listen(3000, () => {
+server.listen(3003, () => {
   console.log('server load....')
 })
+
+const mapSocketIduserId = new Map<string, string>()
+
+const msgList: Array<string> = []
 
 const wsListen = websocketServer.of('/socket.io')
 wsListen.on('connection', serverSocket => {
@@ -36,4 +40,23 @@ wsListen.on('connection', serverSocket => {
   serverSocket.on('disconnect', reason => {
     console.log(reason)
   })
+
+  serverSocket.on('setMe', obj => {
+    console.log('setMe', obj, serverSocket.id)
+    mapSocketIduserId.set(serverSocket.id, obj.id)
+    serverSocket.broadcast.emit('welcome', { name: 'welcome', type: obj.id })
+    serverSocket.emit('s2c-preMessage', msgList)
+  })
+
+  serverSocket.on('c2s', text => {
+    const speaker = mapSocketIduserId.get(serverSocket.id)
+    console.log(speaker, text)
+    msgList.push('[' + speaker + '] ' + text)
+    serverSocket.broadcast.emit('s2c', { sender: speaker, msg: text })
+  })
 })
+
+type MsgItem = {
+  id: string
+  msg: string
+}

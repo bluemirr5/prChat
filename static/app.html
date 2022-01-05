@@ -6,13 +6,63 @@
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-<h1>hello</h1>
-<h2>hello</h2>
-<div>wgs</div>
+<div id="userArea">
+  <input id="userId" type="text" /><button id="setUserBtn">Set User</button>
+</div>
+<hr />
+<div id="input1">
+  <input id="msgInput" type="text"><button id="sendBtn">Send</button>
+</div>
+<hr />
+<div id="msg"></div>
 <script>
-  const clientSocket = io("/socket.io")
-  console.log(clientSocket.id)
-  console.log('hello')
+  const setUserBtnEl = document.getElementById('setUserBtn')
+  const userIdEl = document.getElementById('userId')
+  const msgEl = document.getElementById('msg')
+  const sendBtnEl = document.getElementById('sendBtn')
+  const msgInputEl = document.getElementById('msgInput')
+
+  let userId
+
+  setUserBtnEl.addEventListener('click', function(){
+    userId = userIdEl.value
+    if(userId.length < 3) {
+      alert('id over 3')
+    } else {
+      const clientSocket = io("/socket.io")
+      clientSocket.emit('setMe', {id: userId})
+
+      clientSocket.on('s2c', function(obj) {
+        const totalMsg = "[" + obj.sender + "]" + obj.msg
+        addMsgDisplay(totalMsg)
+      })
+
+      clientSocket.on('welcome', function(obj) {
+        addMsgDisplay(obj.type + '가 입장하셨습니다.')
+      })
+
+      clientSocket.on('s2c-preMessage', function(list) {
+        console.log(list)
+        list.forEach(it => {
+          addMsgDisplay(it)
+        })
+      })
+
+      sendBtnEl.addEventListener('click', function(){
+        const text = msgInputEl.value
+        clientSocket.emit('c2s', text)
+        addMsgDisplay(text)
+      })
+    }
+  })
+
+  function addMsgDisplay(text) {
+    const pEl = document.createElement('p')
+    pEl.innerHTML = text
+    msgEl.appendChild(pEl)
+  }
+
+
 </script>
 </body>
 </html>
