@@ -31,8 +31,8 @@ server.listen(3003, () => {
 })
 
 const mapSocketIduserId = new Map<string, string>()
-
-const msgList: Array<string> = []
+const msgList: Map<string, Array<string>> = new Map()
+// const msgList: Array<string> = []
 
 const wsListen = websocketServer.of('/socket.io')
 wsListen.on('connection', serverSocket => {
@@ -41,18 +41,33 @@ wsListen.on('connection', serverSocket => {
     console.log(reason)
   })
 
-  serverSocket.on('setMe', obj => {
-    console.log('setMe', obj, serverSocket.id)
+  serverSocket.on('joinRoom', obj => {
     mapSocketIduserId.set(serverSocket.id, obj.id)
-    serverSocket.broadcast.emit('welcome', { name: 'welcome', type: obj.id })
-    serverSocket.emit('s2c-preMessage', msgList)
+    serverSocket.join(obj.room)
+
+    let roomMsgList = msgList.get(obj.room)
+    if (!roomMsgList) {
+      roomMsgList = new Array<string>()
+      msgList.set(obj.room, new Array<string>())
+    }
+
+    serverSocket.to(obj.room).emit('welcome', { name: 'welcome', type: obj.id })
+    // serverSocket.broadcast.emit('welcome', { name: 'welcome', type: obj.id })
+
+    console.log(obj.room)
+    console.log(roomMsgList)
+    serverSocket.emit('s2c-preMessage', roomMsgList)
   })
 
-  serverSocket.on('c2s', text => {
+  serverSocket.on('c2s', target => {
     const speaker = mapSocketIduserId.get(serverSocket.id)
-    console.log(speaker, text)
-    msgList.push('[' + speaker + '] ' + text)
-    serverSocket.broadcast.emit('s2c', { sender: speaker, msg: text })
+    console.log(speaker, target)
+    const roomMsgList = msgList.get(target.roomId)
+    console.log(roomMsgList)
+    if (roomMsgList) roomMsgList.push('[' + speaker + '] ' + target.content)
+    serverSocket
+      .to(target.roomId)
+      .emit('s2c', { sender: speaker, msg: target.content })
   })
 })
 

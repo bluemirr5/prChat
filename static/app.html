@@ -10,6 +10,10 @@
   <input id="userId" type="text" /><button id="setUserBtn">Set User</button>
 </div>
 <hr />
+<div id="roomArea">
+  <input id="roomId" type="text" /><button id="setRoomBtn">Set Room</button>
+</div>
+<hr />
 <div id="input1">
   <input id="msgInput" type="text"><button id="sendBtn">Send</button>
 </div>
@@ -17,20 +21,23 @@
 <div id="msg"></div>
 <script>
   const setUserBtnEl = document.getElementById('setUserBtn')
+  const setRoomBtnEl = document.getElementById('setRoomBtn')
   const userIdEl = document.getElementById('userId')
+  const roomIdEl = document.getElementById('roomId')
   const msgEl = document.getElementById('msg')
   const sendBtnEl = document.getElementById('sendBtn')
   const msgInputEl = document.getElementById('msgInput')
 
   let userId
+  let roomId
 
-  setUserBtnEl.addEventListener('click', function(){
-    userId = userIdEl.value
-    if(userId.length < 3) {
+  setRoomBtnEl.addEventListener('click', function() {
+    roomId = roomIdEl.value
+    if(roomId.length < 3) {
       alert('id over 3')
     } else {
       const clientSocket = io("/socket.io")
-      clientSocket.emit('setMe', {id: userId})
+      clientSocket.emit('joinRoom', {id: userId, room: roomId})
 
       clientSocket.on('s2c', function(obj) {
         const totalMsg = "[" + obj.sender + "]" + obj.msg
@@ -50,9 +57,19 @@
 
       sendBtnEl.addEventListener('click', function(){
         const text = msgInputEl.value
-        clientSocket.emit('c2s', text)
+        const target = {roomId: roomId, content: text}
+        clientSocket.emit('c2s', target)
         addMsgDisplay(text)
       })
+    }
+  })
+
+  setUserBtnEl.addEventListener('click', function(){
+    if(userIdEl.value.length < 3) {
+      alert('id over 3')
+    }else {
+      console.log(userId)
+      userId = userIdEl.value
     }
   })
 
