@@ -42,6 +42,7 @@ wsListen.on('connection', serverSocket => {
   })
 
   serverSocket.on('joinRoom', obj => {
+    console.log('joinRoom')
     mapSocketIduserId.set(serverSocket.id, obj.id)
     serverSocket.join(obj.room)
 

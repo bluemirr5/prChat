@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import InfoContext from "../contexts/InfoContext";
 
 const IdSelect = () => {
+  const {id, setId} = useContext(InfoContext)
   const navigate = useNavigate();
 
-  const [id, setId] = useState('')
+  // const [id, setId] = useState('')
   const onNext = () => {
-    console.log(navigate)
-    navigate('/room', {state: {id}})
+    navigate('/room')
   }
   return (
     <>

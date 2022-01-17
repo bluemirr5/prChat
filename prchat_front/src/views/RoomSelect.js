@@ -1,11 +1,10 @@
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import InfoContext from "../contexts/InfoContext";
 
 const RoomSelect = () => {
-  const navigate = useNavigate();
-  const location = useLocation()
-  const [id, setId] = useState(location.state.id)
-  const [room, setRoom] = useState('')
+  const {id, room, setRoom, externalData} = useContext(InfoContext)
+  const navigate = useNavigate()
   const onNext = () => {
     navigate('/chat', {state: {id, room}})
   }
